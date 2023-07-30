@@ -1,0 +1,25 @@
+{
+  "compilerOptions": {
+    "target": "es2018",
+    "module": "esnext",
+    "lib": ["esnext", "DOM"],
+    "moduleResolution": "node",
+    "strict": false,
+    "strictNullChecks": true,
+    "resolveJsonModule": true,
+    "skipDefaultLibCheck": true,
+    "skipLibCheck": true,
+    "declaration": true,
+    "baseUrl": "./",
+    "moduleDetection": "auto",
+    "esModuleInterop": true,
+    "strictPropertyInitialization": true,
+    "noImplicitAny": false,
+    "jsx": "preserve",
+    "allowJs": true,
+    "checkJs": false,
+    "sourceMap": true,
+    "outDir": "lib"
+  },
+  "exclude": ["**/dist/**", "**/node_modules/**", "**/examples/**"]
+}

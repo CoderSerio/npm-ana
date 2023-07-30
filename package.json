@@ -1,0 +1,68 @@
+{
+  "name": "npm-ana",
+  "version": "0.0.2",
+  "private": true,
+  "main": "lib/index.js",
+  "module": "lib/index.ts",
+  "type": "commonjs",
+  "files": [
+    "lib",
+    "README.md"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "pnpm:devPreinstall": "node ./scripts/pnpm/preinstall.js",
+    "dev": "vite dev --bundleConfigAsCjs",
+    "test:all": "pnpm run -r test",
+    "prepare": "husky install",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest",
+    "build-core": "rollup -c",
+    "build-core:dev": "rollup -c -w",
+    "build-view": "tsc && vite build"
+  },
+  "bin": {
+    "ana-cli": "bin/index.js"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^17.6.7",
+    "@commitlint/config-conventional": "^17.6.7",
+    "@rollup/plugin-babel": "^6.0.3",
+    "@rollup/plugin-commonjs": "^25.0.3",
+    "@rollup/plugin-node-resolve": "13.0.6",
+    "@rollup/plugin-terser": "^0.4.3",
+    "@types/node": "^20.3.1",
+    "@types/prettier": "^2.7.3",
+    "@typescript-eslint/eslint-plugin": "^6.2.0",
+    "@typescript-eslint/parser": "^6.2.0",
+    "@vitejs/plugin-react": "^4.0.3",
+    "eslint": "^8.46.0",
+    "eslint-plugin-react": "^7.33.1",
+    "father": "^4.1.8",
+    "husky": "^8.0.3",
+    "lint-staged": "^13.2.2",
+    "prettier": "2.8.8",
+    "rollup": "^2.68.0",
+    "rollup-plugin-terser": "^7.0.2",
+    "typescript": "^5.1.3",
+    "vite": "^4.4.7",
+    "vitest": "^0.32.2"
+  },
+  "lint-staged": {
+    "*.{ts,tsx,md,mdx}": [
+      "prettier --write --ignore-unknown"
+    ],
+    "*.{ts,tsx}": [
+      "tsc --noEmit --skipLibCheck --esModuleInterop --downlevelIteration"
+    ]
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  }
+}
