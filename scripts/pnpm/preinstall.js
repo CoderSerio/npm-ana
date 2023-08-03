@@ -1,9 +1,9 @@
 // 用于校验是否使用 pnpm 8+
-import * as childProcess from "child_process";
+const child_process = require("child_process");
 
 let version;
 try {
-  version = childProcess.execSync("pnpm -v").toString();
+  version = child_process.execSync("pnpm -v").toString();
 } catch (err) {
   console.error(`Error: can't find module 'pnpm'.`);
   process.exit(1);
