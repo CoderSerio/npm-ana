@@ -14,15 +14,15 @@
   },
   "scripts": {
     "pnpm:devPreinstall": "node ./scripts/pnpm/preinstall.js",
-    "dev": "vite dev --bundleConfigAsCjs",
     "test:all": "pnpm run -r test",
     "prepare": "husky install",
     "typecheck": "tsc --noEmit",
     "test": "vitest",
-    "clean": "rimraf lib",
-    "build-core": " pnpm run clean && rollup --bundleConfigAsCjs --config ./scripts/rollup/rollup.config.js",
+    "clean": "rimraf lib && rimraf view",
+    "build-core": " npm run clean && rollup --bundleConfigAsCjs --config ./scripts/rollup/rollup.config.js",
     "build-core:dev": "rollup -c -w",
-    "build-view": "tsc && vite build"
+    "build": "pnpm run clean && tsc && vite build",
+    "dev": "vite dev"
   },
   "bin": {
     "ana-cli": "bin/index.js"

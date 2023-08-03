@@ -6,6 +6,11 @@ export default defineConfig({
   base: "./",
   plugins: [react()],
   build: {
-    outDir: "../../lib/view",
+    lib: {
+      entry: "src/view/index.tsx",
+      name: "viewer",
+      fileName: "viewer",
+    },
+    outDir: "view",
   },
 });
