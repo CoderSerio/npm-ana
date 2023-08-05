@@ -3,13 +3,17 @@ import commonjs from "@rollup/plugin-commonjs";
 import terser from "@rollup/plugin-terser";
 import { babel } from "@rollup/plugin-babel";
 import typescript from "rollup-plugin-typescript2";
+import { resolve } from "path";
+
+const inputPath = resolve(__dirname, "../../src/core/index.ts");
+const outputPath = resolve(__dirname, "../../lib/index.js");
 
 export default [
   {
-    input: "src/core/index.ts",
+    input: inputPath,
     output: [
       {
-        file: "lib/index.js",
+        file: outputPath,
         format: "cjs",
         exports: "auto",
       },

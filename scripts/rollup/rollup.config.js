@@ -1,6 +1,6 @@
 import coreConfig from "./core.config";
-import viewConfig from "./view.config";
+// import viewConfig from "./view.config";
 
 export default () => {
-  return [...coreConfig, ...viewConfig];
+  return [...coreConfig];
 };

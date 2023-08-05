@@ -1,0 +1,14 @@
+{
+  "name": "npm-ana-core",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "clean": "rimraf ../../lib",
+    "build": " npm run clean && rollup --bundleConfigAsCjs --config ../../scripts/rollup/rollup.config.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
