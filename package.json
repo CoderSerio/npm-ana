@@ -1,6 +1,6 @@
 {
   "name": "npm-ana",
-  "version": "0.0.4",
+  "version": "0.1.0",
   "private": false,
   "main": "lib/index.js",
   "module": "lib/index.ts",
