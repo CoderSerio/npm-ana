@@ -2,6 +2,7 @@ import * as http from "http";
 import * as childProcess from "child_process";
 import * as path from "path";
 import * as fs from "fs";
+import { WebSocketServer } from "ws";
 
 const extName2FileType: Record<string, string> = {
   ".png": "image/png",
@@ -15,7 +16,7 @@ const extName2FileType: Record<string, string> = {
 // TODO: 传入端口等参数
 export const startServer = async () => {
   const port = 2333;
-  const server = http.createServer((req, res) => {
+  const httpServer = http.createServer((req, res) => {
     console.log("路径", req.url);
     let resFilePath = "/index.html";
     if (req.url !== "/") {
@@ -33,14 +34,20 @@ export const startServer = async () => {
     fs.createReadStream(htmlFilePath).pipe(res);
   });
 
-  server.listen(port, () => {
+  const wsServer = new WebSocketServer({ server: httpServer });
+
+  wsServer.on("connection", (ws) => {
+    ws.on("message", (msg) => {
+      console.log("客户端消息:", msg);
+    });
+    setInterval(() => {
+      ws.send("tik tok");
+    }, 1000);
+  });
+
+  httpServer.listen(port, () => {
     console.log(__dirname);
     console.log(`服务器已经在${port}上开启`);
     childProcess.exec(`start http://localhost:${port}`);
   });
 };
-
-// export const startFrontEnd = async () => {
-//   console.log("前端已启动");
-//   childProcess.execSync("npm dev");
-// };

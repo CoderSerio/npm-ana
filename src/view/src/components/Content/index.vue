@@ -19,10 +19,27 @@ import { Export } from "@antv/x6-plugin-export";
 import getGraphDataUtils from "./utils";
 
 let graph = ref();
+
+// 处理图相关的的方法
 const { Graph, createEdge, createNode, layout } = getGraphDataUtils(graph);
 
+/** 导出为图片 */
 const printOut = () => {
   graph.value.exportPNG(`依赖分析-${new Date()}`, { padding: 30 });
+};
+
+/** 建立和 ws 服务器之间的连接 */
+const connectWebSocketServer = () => {
+  const ws = new window.WebSocket("ws://localhost:2333");
+  ws.onerror = () => {
+    console.error("ws connecting failed!!!");
+  };
+  ws.onopen = () => {
+    ws.send("Hello World!");
+  };
+  ws.onmessage = (msg) => {
+    console.log("server msg:", msg);
+  };
 };
 
 onMounted(async () => {
@@ -76,6 +93,8 @@ onMounted(async () => {
   if (cell) {
     graph.value.centerCell(cell);
   }
+
+  connectWebSocketServer();
   // graph.value.drawBackground({ color: "#999999" }); // 创建画布后也可调用方法重绘背景
   // graph.value.drawGrid({ type: "mesh" }); // 创建画布后也可调用方法重绘画布网格
   // graph.value.zoom(0.5); // 画布和图形整体的缩放
