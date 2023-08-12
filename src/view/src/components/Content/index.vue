@@ -16,7 +16,9 @@
 import { onMounted, ref, nextTick } from "vue";
 import "@antv/x6-vue-shape";
 import { Export } from "@antv/x6-plugin-export";
+import Zlib from "zlib";
 import getGraphDataUtils from "./utils";
+import * as pako from "pako";
 
 let graph = ref();
 
@@ -39,6 +41,14 @@ const connectWebSocketServer = () => {
   };
   ws.onmessage = (msg) => {
     console.log("server msg:", msg);
+    if (msg?.data?.isCompressed) {
+      try {
+        const json = pako.deflate(msg?.data.isCompressed);
+        console.log("haha", json);
+      } catch (err) {
+        console.error("something goes wrong when deflating:\n", err);
+      }
+    }
   };
 };
 
