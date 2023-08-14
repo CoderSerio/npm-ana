@@ -1,5 +1,5 @@
 import { startServer } from "./server";
-
+import {generateJsonReport} from "./analyzation";
 interface ANAProps {
   depth: number | string;
   port: number | string;
@@ -17,6 +17,12 @@ const ANA = (props: ANAProps) => {
   const currentPath = process.cwd();
   console.log("ANA, 启动！", props);
   console.log("当前位置：", currentPath);
+  console.log("是否生成json",props.json);
+  if(props.json) {
+    console.log("正在生成json文件");
+    generateJsonReport(props.json);
+  }
+  else
   startServer();
 };
 

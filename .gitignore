@@ -5,6 +5,6 @@ dist
 .vscode
 .pnpm-debug.log
 pnpm-lock.yaml
-
+json
 lib
 /view
