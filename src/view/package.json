@@ -12,7 +12,9 @@
     "@antv/layout": "^0.3.23",
     "@antv/x6": "^2.13.1",
     "install": "^0.13.0",
-    "vue": "^3.2.41"
+    "pako": "^2.1.0",
+    "vue": "^3.2.41",
+    "zlib": "^1.0.5"
   },
   "devDependencies": {
     "@antv/x6-plugin-export": "^2.1.6",
