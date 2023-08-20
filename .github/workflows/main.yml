@@ -1,0 +1,81 @@
+name: npmTool
+
+on:
+  # 每当 push 到 master 分支时触发部署
+  [push]:
+    branches: [master]
+  # 手动触发部署
+  workflow_dispatch:
+
+jobs:
+  init-root:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          # “最近更新时间” 等 git 日志相关信息，需要拉取全部提交记录
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v1
+        with:
+          # 选择要使用的 node 版本
+          node-version: "18"
+
+      # 缓存 node_modules
+      - name: Cache node_modules
+        id: cache
+        uses: actions/cache@v1.2.1
+        with:
+          # A directory to store and save the cache
+          path: node_modules
+          # An explicit key for restoring and saving the cache
+          key: ${{runner.OS}}-npm-caches-${{ hashFiles('package-lock.json') }}
+          # An ordered list of keys to use for restoring the cache if no cache hit occurred for key
+
+      # 如果缓存没有命中，安装依赖
+      - name: Install dependencies
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: npm i
+
+  build-core:
+      runs-on: ubuntu-latest
+      needs: init-root
+      steps:
+        - run: cd /src/core
+        - run: npm i
+        - run: npm run build
+        - run: cd ../
+
+  build-view:
+      needs: [init-root,build-core]
+      runs-on: ubuntu-latest
+      steps:
+        - run: cd /src/view
+        - run: npm i
+        - run: npm run build
+        - run: cd ../
+
+  link-package:
+        needs: [init-root,build-core,build-view]
+        runs-on: ubuntu-latest
+        steps:
+        - run : cd ../
+        - run: npm link
+        
+  execute-tool:
+      needs: [init-root,build-core,build-view, link-package]
+      runs-on: ubuntu-latest
+      steps:
+        - run: ana-cli
+
+
+      # 查看 workflow 的文档来获取更多信息
+        - name: Deploy to GitHub Pages
+          uses: JamesIves/github-pages-deploy-action@3.7.1
+          with:
+            ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+            # 部署到 gh-pages 分支
+            BRANCH: gh-pages
+            # 部署目录为 npm-ana 的默认输出目录
+            FOLDER: ana-build
