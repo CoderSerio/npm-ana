@@ -1,14 +1,16 @@
-name: npmTool
+name: npm-ana-dev
 
 on:
-  # 每当 push 到 master 分支时触发部署
-  [push]:
+  # 每当 push 或 pull_request 到 master 分支时触发部署
+  push:
+    branches: [master]
+  pull_request:
     branches: [master]
   # 手动触发部署
   workflow_dispatch:
 
 jobs:
-  init-root:
+  execute-tool:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -36,46 +38,34 @@ jobs:
       # 如果缓存没有命中，安装依赖
       - name: Install dependencies
         if: steps.cache.outputs.cache-hit != 'true'
-        run: npm i
+        run: npm i --legacy-peer-deps  
 
-  build-core:
-      runs-on: ubuntu-latest
-      needs: init-root
-      steps:
-        - run: cd /src/core
-        - run: npm i
-        - run: npm run build
-        - run: cd ../
+      # 安装核心依赖并打包
+      - name: Core install and build
+        run: |
+           npm i
+           npm run build
+        working-directory: ./src/core
 
-  build-view:
-      needs: [init-root,build-core]
-      runs-on: ubuntu-latest
-      steps:
-        - run: cd /src/view
-        - run: npm i
-        - run: npm run build
-        - run: cd ../
-
-  link-package:
-        needs: [init-root,build-core,build-view]
-        runs-on: ubuntu-latest
-        steps:
-        - run : cd ../
-        - run: npm link
-        
-  execute-tool:
-      needs: [init-root,build-core,build-view, link-package]
-      runs-on: ubuntu-latest
-      steps:
-        - run: ana-cli
-
+      # 安装页面依赖并打包
+      - name: View install and build
+        run: |
+           npm i
+           npm run build
+        working-directory: ./src/view
+          
+      # 建立软连接
+      - name: Link package
+        run: npm link
 
       # 查看 workflow 的文档来获取更多信息
-        - name: Deploy to GitHub Pages
-          uses: JamesIves/github-pages-deploy-action@3.7.1
-          with:
-            ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
-            # 部署到 gh-pages 分支
-            BRANCH: gh-pages
-            # 部署目录为 npm-ana 的默认输出目录
-            FOLDER: ana-build
+      # 发布静态页面到github pages,访问https:https://warpshlczy.github.io/npm-ana/查看
+      - name: Deploy to GitHub Pages
+        uses: JamesIves/github-pages-deploy-action@3.7.1
+        with:
+          ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+          # 部署到 gh-pages 分支
+          BRANCH: gh-pages
+          # 部署目录为 npm-ana 的默认输出目录
+          FOLDER: view
+          BUILD_SCRIPT: ana-cli
