@@ -4,8 +4,6 @@ on:
   # 每当 push 或 pull_request 到 master 分支时触发部署
   push:
     branches: [master]
-  pull_request:
-    branches: [master]
   # 手动触发部署
   workflow_dispatch:
 
