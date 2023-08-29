@@ -1,10 +1,10 @@
 import { startServer } from "./server";
-import {generateJsonReport} from "./analyzation";
-interface ANAProps {
-  depth: number | string;
-  port: number | string;
-  json?: string;
-}
+// import { generateJsonReport } from "./analyzation";
+// interface ANAProps {
+//   depth: number | string;
+//   port: number | string;
+//   json?: string;
+// }
 
 /**
  * ana 函数，整个包的核心处理逻辑都在这里
@@ -13,16 +13,16 @@ interface ANAProps {
  *
  * @params props { depth: number, json?: string, port?: number }
  */
-const ANA = (props: ANAProps) => {
-  const currentPath = process.cwd();
-  console.log("ANA, 启动！", props);
-  console.log("当前位置：", currentPath);
-  console.log("是否生成json",props.json);
-  if(props.json) {
-    console.log("正在生成json文件");
-    generateJsonReport(props.json);
-  }
-  else
+const ANA = (/*props: ANAProps*/) => {
+  // const currentPath = process.cwd();
+  // console.log("ANA, 启动！", props);
+  // console.log("当前位置：", currentPath);
+  // console.log("是否生成json", props.json);
+  // if(props.json) {
+  // console.log("正在生成json文件");
+  // generateJsonReport(props.json);
+  // }
+  // else
   startServer();
 };
 

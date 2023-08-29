@@ -3,6 +3,7 @@ import * as childProcess from "child_process";
 import * as path from "path";
 import * as fs from "fs";
 import { WebSocketServer } from "ws";
+import { analyzeDependencies } from "./analyzation";
 
 const extName2FileType: Record<string, string> = {
   ".png": "image/png",
@@ -13,7 +14,6 @@ const extName2FileType: Record<string, string> = {
   ".css": "text/css;charset=utf8",
 };
 
-// TODO: 传入端口等参数
 export const startServer = async () => {
   const port = 2333;
   const httpServer = http.createServer((req, res) => {
@@ -34,8 +34,9 @@ export const startServer = async () => {
     fs.createReadStream(htmlFilePath).pipe(res);
   });
 
-  const wsServer = new WebSocketServer({ server: httpServer });
+  analyzeDependencies();
 
+  const wsServer = new WebSocketServer({ server: httpServer });
   wsServer.on("connection", (ws) => {
     ws.on("message", (msg) => {
       console.log("客户端消息:", msg);

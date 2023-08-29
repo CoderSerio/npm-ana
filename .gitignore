@@ -8,3 +8,4 @@ pnpm-lock.yaml
 json
 lib
 /view
+test_node_modules
