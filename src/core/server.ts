@@ -3,7 +3,7 @@ import * as childProcess from "child_process";
 import * as path from "path";
 import * as fs from "fs";
 import { WebSocketServer } from "ws";
-import { analyzeDependencies } from "./analyzation";
+import { analyzeDependencies, getPackageInfoByIndex } from "./analyzation";
 
 const extName2FileType: Record<string, string> = {
   ".png": "image/png",
@@ -17,7 +17,6 @@ const extName2FileType: Record<string, string> = {
 export const startServer = async () => {
   const port = 2333;
   const httpServer = http.createServer((req, res) => {
-    console.log("路径", req.url);
     let resFilePath = "/index.html";
     if (req.url !== "/") {
       resFilePath = req?.url || "/index.html";
@@ -34,16 +33,29 @@ export const startServer = async () => {
     fs.createReadStream(htmlFilePath).pipe(res);
   });
 
-  analyzeDependencies();
+  const dependencyAdjacencyList = analyzeDependencies();
+  const pageSize = 10;
+  let page = 0;
 
   const wsServer = new WebSocketServer({ server: httpServer });
   wsServer.on("connection", (ws) => {
     ws.on("message", (msg) => {
       console.log("客户端消息:", msg);
     });
+
     setInterval(() => {
-      ws.send("tik tok");
-    }, 1000);
+      const dataSegment: Array<Record<string, number | string>> = [];
+      for (
+        let i = page * pageSize;
+        i < Math.min((page + 1) * pageSize, dependencyAdjacencyList.length);
+        i++
+      ) {
+        const pkgInfo = getPackageInfoByIndex(i);
+        dataSegment.push(pkgInfo);
+      }
+      page++;
+      ws.send(JSON.stringify(dataSegment));
+    }, 800);
   });
 
   httpServer.listen(port, () => {

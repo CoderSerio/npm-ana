@@ -7,8 +7,42 @@ const path2index: Record<string, number> = {};
 const path2name: Record<string, string> = {};
 /** 分类：同名包分到一类。如果一个包的路径数量>1，那么我们需要寻找其中路径最近的一个即可 */
 const name2PathList: Record<string, Array<string>> = {};
-/** 最终的完整数据邻接表 */
+/** 依赖树（邻接表的样子） */
 const dependencyAdjacencyList: Array<Array<number>> = [];
+
+/** 获取命令执行的目录位置 */
+const getClosestCommandTargetPath = () => {
+  let currentPath = process.cwd();
+  // eslint-disable-next-line no-constant-condition
+  while (true) {
+    const dirs = fs.readdirSync(currentPath);
+    if (dirs.includes("node_modules")) {
+      break;
+    } else {
+      currentPath = path.resolve(currentPath, "..");
+      if (currentPath.match(/\w:\\/)) {
+        console.log("没有找到node_modules");
+        return;
+      }
+    }
+  }
+
+  return currentPath;
+};
+
+/** 返回前端需要的依赖信息 */
+export const getPackageInfoByIndex = (index: number) => {
+  const pkgPath = index2path[index];
+  const pkgInfo = JSON.parse(fs.readFileSync(pkgPath).toString());
+
+  // TODO: 文件大小等
+  return {
+    id: index,
+    name: pkgInfo.name,
+    version: pkgInfo.name,
+    description: pkgInfo.description,
+  };
+};
 
 /** 获取所有package.json的绝对路径 */
 const nodeModulesDFS = (entryDirPath: string) => {
@@ -17,10 +51,12 @@ const nodeModulesDFS = (entryDirPath: string) => {
   fileItemList.forEach((fileItem) => {
     const fileItemPath = path.join(entryDirPath, fileItem.name);
     if (fileItem.name === "package.json") {
+      // 记录各种索引
       index2path.push(fileItemPath);
       path2index[fileItemPath] = index2path.length - 1;
       const pkgInfo = JSON.parse(fs.readFileSync(fileItemPath).toString());
       path2name[fileItemPath] = pkgInfo.name;
+
       if (name2PathList[pkgInfo.name] instanceof Array) {
         name2PathList[pkgInfo.name].push(fileItemPath);
       } else {
@@ -28,7 +64,8 @@ const nodeModulesDFS = (entryDirPath: string) => {
         name2PathList[pkgInfo.name].push(fileItemPath);
       }
     } else if (fileItem.isDirectory()) {
-      nodeModulesDFS(fileItemPath);
+      // 启用尾递归，防止内存溢出
+      return nodeModulesDFS(fileItemPath);
     }
   });
 };
@@ -68,7 +105,6 @@ const buildDependencyAdjacencyList = () => {
       const pkgPath = getDependentPath(path, pkgName);
 
       const pkgIndex = path2index[pkgPath];
-      console.log("pkgPath", pkgPath, pkgIndex);
       if (pkgIndex !== undefined) {
         dependenciesIndexList.push(pkgIndex);
       }
@@ -79,51 +115,19 @@ const buildDependencyAdjacencyList = () => {
 };
 
 export const analyzeDependencies = () => {
-  let currentPath = process.cwd();
-  // eslint-disable-next-line no-constant-condition
-  while (true) {
-    const dirs = fs.readdirSync(currentPath);
-    if (dirs.includes("node_modules")) {
-      console.log("当前校验目录", currentPath);
-      break;
-    } else {
-      currentPath = path.resolve(currentPath, "..");
-      if (currentPath.match(/\w:\\/)) {
-        console.log("没有找到node_modules");
-        return;
-      }
-    }
-  }
-
+  // 在遍历之前，把当前包的信息放入数组，完成初始化
+  const currentPath = getClosestCommandTargetPath() as string;
   const nodeModulesEntryPath = path.resolve(currentPath, "node_modules");
+  const rootPackageJsonPath = path.join(currentPath, "package.json");
+  index2path.push(rootPackageJsonPath);
+  path2index[rootPackageJsonPath] = index2path.length - 1;
+  const pkgInfo = JSON.parse(fs.readFileSync(rootPackageJsonPath).toString());
+  path2name[rootPackageJsonPath] = pkgInfo.name;
+
   nodeModulesDFS(nodeModulesEntryPath);
   buildDependencyAdjacencyList();
-  console.log("adjacency", dependencyAdjacencyList);
-  // console.log("adj", dependencyAdjacencyList);
-  // 1. 获取node_modules的位置
-  // fs.readdirSync();
 
-  // const packagePathList = globSync(
-  //   ["**/node_modules/*/package.json", "**/node_modules/@*/*/package.json"],
-  //   {
-  //     cwd: root,
-  //   }
-  // );
-  // console.log("packagePathList", packagePathList);
-
-  // const pkgJsonPath = path.resolve(currentPath, "package-lock.json");
-  // const pkgInfoBuffer = fs.readFileSync(pkgJsonPath);
-  // if (!pkgInfoBuffer) {
-  //   console.log("没有在当前目录下找到 package-lock.json");
-  //   return;
-  // }
-  // const packagesInfoJson = JSON.parse(pkgInfoBuffer.toString());
-  // const packagePaths = Object.keys(packagesInfoJson.packages);
-
-  // packagePaths.forEach((packagePath, index) => {
-  //   index2path[index] = packagePath;
-  //   path2index[packagePath] = index;
-  // });
+  return dependencyAdjacencyList;
 };
 
 export const generateJsonReport = (jsonPath: string, data = "") => {
