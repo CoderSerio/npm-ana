@@ -6,9 +6,10 @@ export default defineConfig({
   plugins: [vue()],
   server: {
     port: 2333,
+    hmr: true,
   },
   build: {
     outDir: "../../view",
   },
-  base: "./"
+  base: "./",
 });

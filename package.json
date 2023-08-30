@@ -1,6 +1,6 @@
 {
   "name": "npm-ana",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "private": false,
   "main": "lib/index.js",
   "module": "lib/index.ts",
@@ -24,7 +24,7 @@
     "dev": "vite dev"
   },
   "bin": {
-    "ana-cli": "bin/index.js"
+    "ana": "bin/index.js"
   },
   "devDependencies": {
     "@babel/preset-env": "^7.22.9",

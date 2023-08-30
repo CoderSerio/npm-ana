@@ -34,28 +34,49 @@ export const startServer = async () => {
   });
 
   const dependencyAdjacencyList = analyzeDependencies();
-  const pageSize = 10;
-  let page = 0;
 
   const wsServer = new WebSocketServer({ server: httpServer });
   wsServer.on("connection", (ws) => {
     ws.on("message", (msg) => {
-      console.log("客户端消息:", msg);
-    });
+      // let intervalId: NodeJS.Timer | undefined;
+      // const pageSize = 10;
+      // let page = 0;
+      // console.log("客户端消息:", msg);
 
-    setInterval(() => {
-      const dataSegment: Array<Record<string, number | string>> = [];
-      for (
-        let i = page * pageSize;
-        i < Math.min((page + 1) * pageSize, dependencyAdjacencyList.length);
-        i++
-      ) {
-        const pkgInfo = getPackageInfoByIndex(i);
-        dataSegment.push(pkgInfo);
+      // if (msg) {
+      //   intervalId = setInterval(() => {
+      //     const dataSegment: Array<
+      //       Record<string, number | string | Array<number>>
+      //     > = [];
+      //     const start = page * pageSize;
+      //     const end = Math.min(
+      //       (page + 1) * pageSize,
+      //       dependencyAdjacencyList.length
+      //     );
+      //     // 分页
+      //     for (let i = start; i < end; i++) {
+      //       const pkgInfo = getPackageInfoByIndex(i);
+      //       dataSegment.push(pkgInfo);
+      //     }
+      //     if (end < dependencyAdjacencyList.length) {
+      //       page++;
+      //       ws.send(JSON.stringify(dataSegment));
+      //     } else {
+      //       clearInterval(intervalId);
+      //     }
+      //   }, 1500);
+      // }
+      if (msg) {
+        const dataSegment: Array<
+          Record<string, number | string | Array<number>>
+        > = [];
+        for (let i = 0; i < dependencyAdjacencyList.length; i++) {
+          const pkgInfo = getPackageInfoByIndex(i);
+          dataSegment.push(pkgInfo);
+        }
+        ws.send(JSON.stringify(dataSegment));
       }
-      page++;
-      ws.send(JSON.stringify(dataSegment));
-    }, 800);
+    });
   });
 
   httpServer.listen(port, () => {

@@ -10,6 +10,13 @@ const name2PathList: Record<string, Array<string>> = {};
 /** 依赖树（邻接表的样子） */
 const dependencyAdjacencyList: Array<Array<number>> = [];
 
+/** 安全读取package.json */
+const readPackageInfoSync = (fileItemPath: string) => {
+  const pkgInfoJson = fs.readFileSync(fileItemPath)?.toString() ?? "";
+  const pkgInfo = JSON.parse(pkgInfoJson);
+  return pkgInfo;
+};
+
 /** 获取命令执行的目录位置 */
 const getClosestCommandTargetPath = () => {
   let currentPath = process.cwd();
@@ -33,14 +40,17 @@ const getClosestCommandTargetPath = () => {
 /** 返回前端需要的依赖信息 */
 export const getPackageInfoByIndex = (index: number) => {
   const pkgPath = index2path[index];
-  const pkgInfo = JSON.parse(fs.readFileSync(pkgPath).toString());
+  const pkgInfo = readPackageInfoSync(pkgPath);
+
+  console.log(dependencyAdjacencyList[index]);
 
   // TODO: 文件大小等
   return {
     id: index,
     name: pkgInfo.name,
-    version: pkgInfo.name,
+    version: pkgInfo.version,
     description: pkgInfo.description,
+    dependencies: dependencyAdjacencyList[index],
   };
 };
 
@@ -48,13 +58,14 @@ export const getPackageInfoByIndex = (index: number) => {
 const nodeModulesDFS = (entryDirPath: string) => {
   const fileItemList = fs.readdirSync(entryDirPath, { withFileTypes: true });
 
-  fileItemList.forEach((fileItem) => {
+  fileItemList?.forEach((fileItem) => {
     const fileItemPath = path.join(entryDirPath, fileItem.name);
     if (fileItem.name === "package.json") {
       // 记录各种索引
       index2path.push(fileItemPath);
       path2index[fileItemPath] = index2path.length - 1;
-      const pkgInfo = JSON.parse(fs.readFileSync(fileItemPath).toString());
+
+      const pkgInfo = readPackageInfoSync(fileItemPath);
       path2name[fileItemPath] = pkgInfo.name;
 
       if (name2PathList[pkgInfo.name] instanceof Array) {
@@ -96,9 +107,9 @@ const getDependentPath = (currentPath: string, pkgName: string) => {
 
 /** 构建依赖邻接表 */
 const buildDependencyAdjacencyList = () => {
-  index2path.forEach((path) => {
+  index2path?.forEach((path) => {
     const dependenciesIndexList: Array<number> = [];
-    const pkgInfo = JSON.parse(fs.readFileSync(path).toString());
+    const pkgInfo = readPackageInfoSync(path);
     const dependencies = pkgInfo.dependencies;
 
     for (const pkgName in dependencies) {
@@ -121,7 +132,7 @@ export const analyzeDependencies = () => {
   const rootPackageJsonPath = path.join(currentPath, "package.json");
   index2path.push(rootPackageJsonPath);
   path2index[rootPackageJsonPath] = index2path.length - 1;
-  const pkgInfo = JSON.parse(fs.readFileSync(rootPackageJsonPath).toString());
+  const pkgInfo = readPackageInfoSync(rootPackageJsonPath);
   path2name[rootPackageJsonPath] = pkgInfo.name;
 
   nodeModulesDFS(nodeModulesEntryPath);

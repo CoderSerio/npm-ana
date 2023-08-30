@@ -13,17 +13,17 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref, nextTick } from "vue";
+import { onMounted, ref, nextTick, reactive } from "vue";
 import "@antv/x6-vue-shape";
 import { Export } from "@antv/x6-plugin-export";
-import Zlib from "zlib";
 import getGraphDataUtils from "./utils";
-import * as pako from "pako";
 
 let graph = ref();
 
 // 处理图相关的的方法
 const { Graph, createEdge, createNode, layout } = getGraphDataUtils(graph);
+const nodes = reactive([]);
+const edges = reactive([]);
 
 /** 导出为图片 */
 const printOut = () => {
@@ -37,18 +37,32 @@ const connectWebSocketServer = () => {
     console.error("ws connecting failed!!!");
   };
   ws.onopen = () => {
-    ws.send("Hello World!");
+    ws.send("init");
   };
-  ws.onmessage = (msg) => {
-    console.log("server msg:", msg);
-    if (msg?.data?.isCompressed) {
-      try {
-        const json = pako.deflate(msg?.data.isCompressed);
-        console.log("haha", json);
-      } catch (err) {
-        console.error("something goes wrong when deflating:\n", err);
-      }
-    }
+  ws.onmessage = async (msg) => {
+    const data = JSON.parse(msg.data);
+    console.log(data);
+    data?.forEach((dataItem) => {
+      nodes.push(
+        createNode(
+          dataItem.name,
+          dataItem.version,
+          dataItem.description,
+          dataItem?.id === 0 ? "root-node" : undefined
+        )
+      );
+    });
+    data?.forEach((dataItem) => {
+      console.log(dataItem?.name, dataItem?.id, dataItem?.dependencies);
+      dataItem?.dependencies?.forEach((depId) => {
+        if (![dataItem?.id, depId].includes(undefined)) {
+          edges.push(createEdge(nodes[dataItem.id], nodes[depId]));
+        }
+      });
+    });
+    // 再遍历一遍算了
+    graph.value.resetCells([...nodes, ...edges]);
+    layout();
   };
 };
 
@@ -67,37 +81,12 @@ onMounted(async () => {
     },
   });
 
-  const nodes = [
-    createNode("这是目录名字", "", "", "root-node"),
-    createNode("依赖1", "v1.2.3", "30kb"),
-    createNode("依赖1", "v1.2.3", "30kb"),
-    createNode("依赖1", "v1.2.3", "30kb"),
-    createNode("依赖1", "v1.2.3", "30kb"),
-    createNode("依赖1", "v1.2.3", "30kb"),
-    createNode("依赖1", "v1.2.3", "30kb"),
-    createNode("依赖1", "v1.2.3", "30kb"),
-    createNode("依赖1", "v1.2.3", "30kb"),
-    createNode("依赖1", "v1.2.3", "30kb"),
-    createNode("依赖1", "v1.2.3", "30kb"),
-  ];
-
-  const edges = [
-    createEdge(nodes[0], nodes[1]),
-    createEdge(nodes[8], nodes[2]),
-    createEdge(nodes[2], nodes[3]),
-    createEdge(nodes[3], nodes[4]),
-    createEdge(nodes[0], nodes[5]),
-    createEdge(nodes[1], nodes[6]),
-    createEdge(nodes[2], nodes[7]),
-    createEdge(nodes[6], nodes[8]),
-  ];
-
-  await nextTick();
+  // [createNode("这是目录名字", "", "", "root-node")].forEach((node) =>
+  //   nodes.push(node)
+  // );
 
   // https://x6.antv.antgroup.com/tutorial/plugins/scroller
   graph.value.use(new Export());
-  graph.value.resetCells([...nodes, ...edges]);
-  layout();
 
   const cell = graph.value.getCells()[0];
   if (cell) {
