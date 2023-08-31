@@ -110,7 +110,10 @@ const buildDependencyAdjacencyList = () => {
   index2path?.forEach((path) => {
     const dependenciesIndexList: Array<number> = [];
     const pkgInfo = readPackageInfoSync(path);
-    const dependencies = pkgInfo.dependencies;
+    const dependencies = {
+      ...pkgInfo.dependencies,
+      ...pkgInfo.devDependencies,
+    };
 
     for (const pkgName in dependencies) {
       const pkgPath = getDependentPath(path, pkgName);
