@@ -63,6 +63,10 @@ const connectWebSocketServer = () => {
     // 再遍历一遍算了
     graph.value.resetCells([...nodes, ...edges]);
     layout();
+    const cell = graph.value.getCells()[0];
+    if (cell) {
+      graph.value.centerCell(cell);
+    }
   };
 };
 
@@ -87,11 +91,6 @@ onMounted(async () => {
 
   // https://x6.antv.antgroup.com/tutorial/plugins/scroller
   graph.value.use(new Export());
-
-  const cell = graph.value.getCells()[0];
-  if (cell) {
-    graph.value.centerCell(cell);
-  }
 
   connectWebSocketServer();
   // graph.value.drawBackground({ color: "#999999" }); // 创建画布后也可调用方法重绘背景
